@@ -1,0 +1,72 @@
+service: file-watcher
+frameworkVersion: ">=1.40.0 <2.0.0"
+
+provider:
+  name: aws
+  runtime: python3.7
+  region: us-east-1
+  versionFunctions: false
+  vpc:
+    securityGroupIds:
+      - sg-ex1mpl3secgrp
+    subnetIds:
+      - subnet-ex1mpl3subn3t1
+      - subnet-ex1mpl3subn3t2
+  environment:
+    INGEST_BUCKET: serverless-poc-${opt:stage, self:provider.stage}
+    SNOWSQL_ACCOUNT: ${ssm:/serverless/dev/snowsql/acct}
+    SNOWSQL_USER: ${ssm:/serverless/dev/snowsql/user~true} # ~true as this is encrypted
+    SNOWSQL_PWD: ${ssm:/serverless/dev/snowsql/pass~true}  # ~true as this is encrypted
+    SNOWSQL_ROLE: ${ssm:/serverless/dev/snowsql/role}
+    SNOWSQL_WAREHOUSE: ${ssm:/serverless/dev/snowsql/warehouse}
+    SNOWSQL_DATABASE: ${ssm:/serverless/dev/snowsql/db}
+    SNOWSQL_SCHEMA: ${ssm:/serverless/dev/snowsql/schema}
+
+  tags:
+    Environment: ${opt:stage, self:provider.stage} # use the --stage cmdarg or provider.stage as default is no cmdarg specified
+    Tier: Ingest
+
+functions:
+  s3FileCreated:
+    handler: handler.s3FileCreated
+    description: Store metadata to Snowflake for each delivered file to a bucket CREATED from the framework
+    timeout: 60
+    events: # All events associated with this function
+      - s3:
+          bucket: ${self:provider.environment.INGEST_BUCKET}
+          event: s3:ObjectCreated:*
+          # rules:
+          #   - prefix: uploads/
+          #   - suffix: .jpg
+
+  s3FileCreatedExistingBucket:
+    handler: handler.s3FileCreated
+    description: Store metadata to Snowflake for each delivered file to an EXISTING bucket
+    timeout: 60
+    events:
+      - existingS3:
+          bucket: 's3-serverless-poc-existing'
+          events: 
+            - s3:ObjectCreated:*
+          rules:
+            - prefix: ocean/pin_base/prod/
+      - existingS3:
+          bucket: 's3-serverless-poc-existing'
+          events: 
+            - s3:ObjectCreated:*
+          rules:
+            - prefix: ocean/pin_base_stest/prod/     
+      - existingS3:
+          bucket: 's3-serverless-poc-existing'
+          events: 
+            - s3:ObjectCreated:*
+          rules:
+            - prefix: ocean/ods/prod/
+
+plugins:
+  - serverless-python-requirements   # Python module packaging
+  - serverless-plugin-existing-s3    # Attach a Lambda fn to an existing S3 bucket
+
+custom:
+  pythonRequirements:
+    dockerizePip: non-linux

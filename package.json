@@ -1,0 +1,7 @@
+{
+  "name": "file-watcher",
+  "dependencies": {
+    "serverless-plugin-existing-s3": "^2.3.3",
+    "serverless-python-requirements": "^4.3.0"
+  }
+}
