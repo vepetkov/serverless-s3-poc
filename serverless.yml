@@ -28,7 +28,7 @@ provider:
 
 functions:
   s3FileCreated:
-    handler: handler.s3FileCreated
+    handler: handler.s3_file_created
     description: Store metadata to Snowflake for each delivered file to a bucket CREATED from the framework
     timeout: 60
     events: # All events associated with this function
@@ -40,7 +40,7 @@ functions:
           #   - suffix: .jpg
 
   s3FileCreatedExistingBucket:
-    handler: handler.s3FileCreated
+    handler: handler.s3_file_created
     description: Store metadata to Snowflake for each delivered file to an EXISTING bucket
     timeout: 60
     events:
