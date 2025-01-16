@@ -10,7 +10,7 @@ chardet==3.0.4
 cryptography==42.0.4
 docutils==0.14
 future==0.18.3
-idna==2.8
+idna==3.7
 ijson==2.3
 jmespath==0.9.4
 pycparser==2.19
